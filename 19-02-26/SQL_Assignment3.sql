@@ -215,14 +215,14 @@ insert into trip_status_log values
 (8,1006, 'delayed',  '2026-02-25 12:00');
 
 /*
-SQL Questions---
+SQL Questions
+
 Find routes where stop sequence numbers are missing or repeated. 
 Show vehicles that were assigned to more than one route at the same time. 
 Find tickets that were used after their 90-minute validity period expired. 
 Show trips that were first marked On-Time but later changed to Delayed. 
 Find tickets that were scanned more than once within 5 minutes.
 */
-
 select route_id, sequence_number, count(*) as total
 from route_stops 
 group by route_id, sequence_number
@@ -252,6 +252,6 @@ and t2.status = 'on-time');
 select s1.ticket_id
 from ticket_scan_log s1
 join ticket_scan_log s2
-    on s1.ticket_id = s2.ticket_id
-   and s1.scan_id < s2.scan_id
-   and datediff(minute, s1.scan_time, s2.scan_time) <= 5;
+on s1.ticket_id = s2.ticket_id
+and s1.scan_id < s2.scan_id
+and datediff(minute, s1.scan_time, s2.scan_time) <= 5;
