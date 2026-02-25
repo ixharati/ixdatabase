@@ -755,7 +755,7 @@ on c.cust_id= o.cust_id;
 
 select c.cust_name, o.order_id,
 case 
-when o.amount > (select avg(amount) from orders)
+when o.amount < (select avg(amount) from orders)
 then 'average'
 when o.amount > (select avg(amount)*1.18 from orders)
 then 'high'
@@ -764,3 +764,59 @@ end as categoryOfAmount
 from customers as c
 join orders as o
 on c.cust_id= o.cust_id;
+
+select c.cust_name, count(o.order_id), sum(o.amount),
+case 
+when sum(o.amount) > (select avg(amount) from orders)
+then 'high value'
+when sum(o.amount) is null
+then 'no orders'
+else 'normal'
+end as category
+from customers as c
+left join orders o
+on c.cust_id = o.cust_id
+group by c.cust_name;
+
+select * from customers where cust_id not in(select cust_id from orders);
+
+select * 
+from employee as e
+join 
+(select dept.deptid,avg(emp.salary) as average from employee emp join department as dept on emp.deptid = dept.deptid group by dept.deptid) as d
+on e.deptid = d.deptid where e.salary > d.average;
+
+select emp.emp_name as employee, emp2.emp_name as manager
+from employee as emp
+join 
+employee as emp2
+on emp.manager_id = emp2.empid;
+
+select p.product_name,
+count(o.order_id),
+sum(o.amount) as Total_sales,
+case
+when count(o.order_id) > 1 then 'popular'
+else 'less ordered'
+end as product_status
+from products as p
+join orders as o 
+on p.order_id = o.order_id
+group by p.product_name
+having sum(o.amount)>5500;
+
+select *
+from customers as c 
+left join orders as o 
+on c.cust_id= o.cust_id
+union 
+select *
+from customers as c 
+right join orders as o 
+on c.cust_id= o.cust_id;
+
+select d.deptname, count(e.empid) as Total
+from employee as e
+join department as d
+on e.deptid = d.deptid
+group by d.deptname;
