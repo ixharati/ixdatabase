@@ -34,7 +34,7 @@ create table vehicles (
     capacity int not null,
     is_active bit default 1
 );
-
+ 
 
 create table passengers (
     passenger_id int primary key,
@@ -84,6 +84,45 @@ create table ticket_scan_log (
     constraint fk_scan_ticket foreign key (ticket_id) references tickets(ticket_id),
     constraint fk_scan_trip foreign key (trip_id) references trips(trip_id),
     constraint fk_scan_stop foreign key (stop_id) references stops(stop_id)
+);
+
+
+---modifications
+
+EXEC sp_rename 'stops.lat', 'latitude', 'COLUMN';
+EXEC sp_rename 'stops.long', 'longitude', 'COLUMN';
+
+create table drivers (
+    driver_id int primary key,
+    driver_name varchar(100) not null,
+    license_number varchar(50) unique not null,
+    phone varchar(15),
+    experience_years int,
+    is_active bit default 1
+);
+
+alter table trips
+add driver_id int;
+
+alter table trips
+add constraint fk_trip_driver
+foreign key (driver_id) references drivers(driver_id);
+
+alter table tickets
+add number_of_persons int not null default 1;
+
+alter table tickets
+add price decimal(8,2) not null default 0.00;
+
+create table payments (
+    payment_id int primary key,
+    ticket_id int not null,
+    payment_time datetime not null,
+    amount decimal(8,2) not null,
+    payment_method varchar(20) check (payment_method in ('cash','card','upi')),
+    payment_status varchar(15) check (payment_status in ('pending','completed','failed')),
+    
+    constraint fk_payment_ticket foreign key (ticket_id) references tickets(ticket_id)
 );
 
 ---inserting values
@@ -223,6 +262,7 @@ Find tickets that were used after their 90-minute validity period expired.
 Show trips that were first marked On-Time but later changed to Delayed. 
 Find tickets that were scanned more than once within 5 minutes.
 */
+
 select route_id, sequence_number, count(*) as total
 from route_stops 
 group by route_id, sequence_number
@@ -255,3 +295,5 @@ join ticket_scan_log s2
 on s1.ticket_id = s2.ticket_id
 and s1.scan_id < s2.scan_id
 and datediff(minute, s1.scan_time, s2.scan_time) <= 5;
+
+
